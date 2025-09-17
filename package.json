@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "test": "jest",
-    "build": "webpack && copy dist\\flowquery.min.js web\\flowquery.min.js",
+    "build": "webpack && copy dist\\flowquery.min.js web\\flowquery.min.js && copy dist\\flowquery.min.js docs\\flowquery.min.js && copy web\\index.html docs\\index.html",
     "main": "tsc & node dist/index.js"
   },
   "keywords": [],
