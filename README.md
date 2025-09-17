@@ -5,11 +5,32 @@ FlowQuery is a declarative query language for defining and executing data proces
 
 The main motivation of FlowQuery is rapid prototyping of fixed step data processing pipelines involving LLMs (for example chain-of-thought) and as such drastically shorten the work needed to create such data processing pipelines. A core business outcome of this is faster product value experimentation loops, which leads to shorter time-to-market for product ideas involving LLMs.
 
+FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/compiled runs both in browser or in Node as a self-contained one-file Javascript library.
+
 ## Howto
 - Dev: ```npm start```
+  - This will start a FlowQuery command line where you can run statements.
 - Test: ```npm test```
-- Build: ```npm run build``` (builds for web)
-  - Then test in browser by running in PowerShell: ```.\web\run_webserver.ps1``` 
+  - This will run all unit tests.
+- Build: ```npm run build``` (builds for both Node and web)
+  - Then test in browser by running in PowerShell: ```.\web\run_webserver.ps1```
+
+## Examples
+```
+// Test completion from Azure OpenAI API
+with
+    'YOUR_AZURE_OPENAI_API_KEY' as AZURE_OPENAI_API_KEY
+load json from 'https://YOUR_DEPLOYMENT_NAME.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview'
+headers {
+    `Content-Type`: 'application/json',
+    `api-key`: AZURE_OPENAI_API_KEY,
+}
+post {
+    messages: [{role: 'user', content: 'Answer with this is a test!'}],
+    temperature: 0.7
+} as data
+return data
+```
 
 ## Contributing
 
