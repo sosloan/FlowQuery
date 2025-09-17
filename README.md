@@ -33,12 +33,43 @@ return data
 ```
 ```
 /*
-* Return 10 random facts about cats
-* from an open API.
+  This query fetches 10 cat facts from the Cat Facts API (https://catfact.ninja/fact)
+  and then uses the OpenAI API to analyze those cat facts and return a short summary
+  of the most interesting facts and what they imply about cats as pets.
+  
+  To run this query, you need to set the OPENAI_API_KEY variable to your OpenAI API key.
+  You also need to set the OpenAI-Organization header to your organization ID.
+    You can find your organization ID in the OpenAI dashboard.
+    See https://platform.openai.com/docs/guides/chat for more information.
 */
+// Setup OpenAI API key and organization ID
+with
+    'YOUR_OPENAI_API_KEY' as OPENAI_API_KEY,
+    'YOUR_OPENAI_ORGANIZATION_ID' as OPENAI_ORGANIZATION_ID
+// Get 10 cat facts and collect them into a list
 unwind range(0,10) as i
 load json from "https://catfact.ninja/fact" as item
-return item.fact as catfact
+with collect(item.fact) as catfacts
+// Create prompt to analyze cat facts
+with f"
+Analyze the following cat facts and answer with a short summary of the most interesting facts, and what they imply about cats as pets:
+{join(catfacts, '\n')}
+" as catfacts_analysis_prompt
+// Call OpenAI API to analyze cat facts
+load json from 'https://api.openai.com/v1/chat/completions'
+headers {
+    `Content-Type`: 'application/json',
+    Authorization: f'Bearer {OPENAI_API_KEY}',
+    `OpenAI-Organization`: OPENAI_ORGANIZATION_ID
+}
+post {
+    model: 'gpt-4o-mini',
+    messages: [{role: 'user', content: catfacts_analysis_prompt}],
+    temperature: 0.7
+} as openai_response
+with openai_response.choices[0].message.content as catfacts_analysis
+// Return the analysis
+return catfacts_analysis
 ```
 
 ## Contributing
