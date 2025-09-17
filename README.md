@@ -16,7 +16,8 @@ FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/c
   - Then test in browser by running in PowerShell: ```.\web\run_webserver.ps1```
 
 ## Examples
-```
+See also .\tests\compute\runner.test.ts for more examples.
+```cypher
 /*
 Collect 10 random pieces of wisdom and create a letter histogram.
 */
@@ -26,7 +27,7 @@ with join(collect(item.slip.advice),"") as wisdom
 unwind split(wisdom,"") as letter
 return letter, sum(1) as lettercount
 ```
-```
+```cypher
 /*
   This query fetches 10 cat facts from the Cat Facts API (https://catfact.ninja/fact)
   and then uses the OpenAI API to analyze those cat facts and return a short summary
@@ -66,7 +67,7 @@ with openai_response.choices[0].message.content as catfacts_analysis
 // Return the analysis
 return catfacts_analysis
 ```
-```
+```cypher
 // Test completion from Azure OpenAI API
 with
     'YOUR_AZURE_OPENAI_API_KEY' as AZURE_OPENAI_API_KEY
