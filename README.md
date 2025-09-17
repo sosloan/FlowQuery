@@ -43,15 +43,18 @@ return letter, sum(1) as lettercount
 with
     'YOUR_OPENAI_API_KEY' as OPENAI_API_KEY,
     'YOUR_OPENAI_ORGANIZATION_ID' as OPENAI_ORGANIZATION_ID
+
 // Get 10 cat facts and collect them into a list
 unwind range(0,10) as i
 load json from "https://catfact.ninja/fact" as item
 with collect(item.fact) as catfacts
+
 // Create prompt to analyze cat facts
 with f"
 Analyze the following cat facts and answer with a short summary of the most interesting facts, and what they imply about cats as pets:
 {join(catfacts, '\n')}
 " as catfacts_analysis_prompt
+
 // Call OpenAI API to analyze cat facts
 load json from 'https://api.openai.com/v1/chat/completions'
 headers {
@@ -65,6 +68,7 @@ post {
     temperature: 0.7
 } as openai_response
 with openai_response.choices[0].message.content as catfacts_analysis
+
 // Return the analysis
 return catfacts_analysis
 ```
