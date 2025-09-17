@@ -17,6 +17,7 @@ FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/c
 
 ## Examples
 See also .\tests\compute\runner.test.ts for more examples.
+Test live at https://microsoft.github.io/FlowQuery.
 ```cypher
 /*
 Collect 10 random pieces of wisdom and create a letter histogram.
