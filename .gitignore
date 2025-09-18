@@ -421,4 +421,4 @@ FodyWeavers.xsd
 dist/
 node_modules/
 .vscode/
-queries/
+.env
