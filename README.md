@@ -1,6 +1,4 @@
-# FlowQuery
-
-![FlowQuery logo](./FlowQueryLogoIcon.png)
+![FlowQuery](./FlowQueryLogoIcon.png)
 
 A declarative query language for data processing pipelines.
 
