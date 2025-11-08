@@ -49,7 +49,7 @@ import Null from "./components/null";
  * @example
  * ```typescript
  * const parser = new Parser();
- * const ast = parser.parse("WITH x = 1 RETURN x");
+ * const ast = parser.parse("WITH 1 as x RETURN x");
  * ```
  */
 class Parser extends BaseParser {
@@ -66,7 +66,7 @@ class Parser extends BaseParser {
      * 
      * @example
      * ```typescript
-     * const ast = parser.parse("LOAD JSON FROM 'data.json' AS data RETURN data");
+     * const ast = parser.parse("LOAD JSON FROM 'https://api.adviceslip.com/advice' AS data RETURN data");
      * ```
      */
     public parse(statement: string): ASTNode {
