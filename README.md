@@ -8,7 +8,7 @@ The main motivation of FlowQuery is rapid prototyping of fixed step data process
 
 FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/compiled runs both in browser or in Node as a self-contained one-file Javascript library.
 
-- Test live at https://microsoft.github.io/FlowQuery.
+- Test live at https://microsoft.github.io/FlowQuery/.
 - To use FlowQuery as a VSCode plugin, check https://github.com/microsoft/FlowQuery/tree/main/flowquery-vscode.
 
 ## Howto
