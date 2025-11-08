@@ -1,9 +1,24 @@
 import Runner from '../compute/runner';
 import * as readline from 'readline';
 
+/**
+ * Interactive command-line interface for FlowQuery.
+ * 
+ * Provides a REPL (Read-Eval-Print Loop) for executing FlowQuery statements
+ * and displaying results.
+ * 
+ * @example
+ * ```typescript
+ * const cli = new CommandLine();
+ * cli.loop(); // Starts interactive mode
+ * ```
+ */
 class CommandLine {
     private rl: readline.Interface;
 
+    /**
+     * Creates a new CommandLine interface.
+     */
     constructor() {
         this.rl = readline.createInterface({
             input: process.stdin,
@@ -11,6 +26,12 @@ class CommandLine {
         });
     }
 
+    /**
+     * Starts the interactive command loop.
+     * 
+     * Prompts the user for FlowQuery statements, executes them, and displays results.
+     * Type "exit" to quit the loop.
+     */
     public loop() {
         console.log('Welcome to FlowQuery! Type "exit" to quit.');
         this.rl.setPrompt('> ');

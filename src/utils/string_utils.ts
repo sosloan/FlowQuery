@@ -1,3 +1,9 @@
+/**
+ * Utility class for string manipulation and validation.
+ * 
+ * Provides methods for handling quoted strings, comments, escape sequences,
+ * and identifier validation.
+ */
 class StringUtils {
     static readonly quotes: string[] = ['"', "'", '`'];
     static readonly letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5,6 +11,12 @@ class StringUtils {
     static readonly whitespace = ' \t\n\r';
     static readonly word_valid_chars = StringUtils.letters + StringUtils.digits + '_';
 
+    /**
+     * Removes surrounding quotes from a string.
+     * 
+     * @param str - The string to unquote
+     * @returns The unquoted string
+     */
     static unquote(str: string): string {
         if(str.length === 0) {
             return str;
@@ -26,6 +38,12 @@ class StringUtils {
         return str;
     }
 
+    /**
+     * Removes comment markers from a string.
+     * 
+     * @param str - The comment string
+     * @returns The string without comment markers
+     */
     static uncomment(str: string): string {
         if (str.length < 2) {
             return str;
@@ -39,6 +57,13 @@ class StringUtils {
         return str;
     }
 
+    /**
+     * Removes escape sequences before quotes in a string.
+     * 
+     * @param str - The string to process
+     * @param quoteChar - The quote character that was escaped
+     * @returns The string with escape sequences removed
+     */
     static removeEscapedQuotes(str: string, quoteChar: string): string {
         let unescaped = '';
         for (let i = 0; i < str.length; i++) {
@@ -50,6 +75,12 @@ class StringUtils {
         return unescaped;
     }
 
+    /**
+     * Removes escaped braces ({{ and }}) from f-strings.
+     * 
+     * @param str - The string to process
+     * @returns The string with escaped braces resolved
+     */
     static removeEscapedBraces(str: string): string {
         let unescaped = '';
         for (let i = 0; i < str.length; i++) {
@@ -61,6 +92,12 @@ class StringUtils {
         return unescaped;
     }
 
+    /**
+     * Checks if a string is a valid identifier.
+     * 
+     * @param str - The string to validate
+     * @returns True if the string can be used as an identifier, false otherwise
+     */
     static can_be_identifier(str: string): boolean {
         const lower = str.toLowerCase();
         if(lower.length === 0) {

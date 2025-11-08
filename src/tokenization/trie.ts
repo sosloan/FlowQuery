@@ -1,5 +1,11 @@
 import Token from "./token";
 
+/**
+ * Represents a node in a Trie data structure.
+ * 
+ * Each node can have children nodes (one per character) and may contain a token
+ * if the path to this node represents a complete word.
+ */
 class Node {
     private _children: Map<string, Node> = new Map();
     private _token: Token | undefined = undefined;
@@ -29,11 +35,30 @@ class Node {
     }
 }
 
+/**
+ * Trie (prefix tree) data structure for efficient keyword and operator lookup.
+ * 
+ * Used during tokenization to quickly match input strings against known keywords
+ * and operators. Supports case-insensitive matching and tracks the longest match found.
+ * 
+ * @example
+ * ```typescript
+ * const trie = new Trie();
+ * trie.insert(Token.WITH);
+ * const found = trie.find("WITH");
+ * ```
+ */
 class Trie {
     private _root: Node = new Node();
     private _max_length: number = 0;
     private _last_found: string | null = null;
 
+    /**
+     * Inserts a token into the trie.
+     * 
+     * @param token - The token to insert
+     * @throws {Error} If the token value is null or empty
+     */
     public insert(token: Token): void {
         if(token.value === null || token.value.length === 0) {
             throw new Error("Token value cannot be null or empty");
@@ -48,6 +73,12 @@ class Trie {
         currentNode.token = token;
     }
 
+    /**
+     * Finds a token by searching for the longest matching prefix in the trie.
+     * 
+     * @param value - The string value to search for
+     * @returns The token if found, undefined otherwise
+     */
     public find(value: string): Token | undefined {
         if(value.length === 0) {
             return undefined;
@@ -73,6 +104,11 @@ class Trie {
         return found;
     }
 
+    /**
+     * Gets the last matched string from the most recent find operation.
+     * 
+     * @returns The last found string, or null if no match was found
+     */
     public get last_found(): string | null {
         return this._last_found;
     }

@@ -423,3 +423,6 @@ node_modules/
 .vscode/
 .env
 coaching_prototype.cql
+
+# TypeDoc API documentation (generated)
+docs/api/

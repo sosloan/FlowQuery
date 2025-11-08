@@ -6,16 +6,40 @@ import Symbol from './symbol';
 import Operator from './operator';
 import TokenMapper from './token_mapper';
 
+/**
+ * Tokenizes FlowQuery input strings into a sequence of tokens.
+ * 
+ * The tokenizer performs lexical analysis, breaking down the input text into
+ * meaningful tokens such as keywords, identifiers, operators, strings, numbers,
+ * and symbols. It handles comments, whitespace, and f-strings.
+ * 
+ * @example
+ * ```typescript
+ * const tokenizer = new Tokenizer("WITH x = 1 RETURN x");
+ * const tokens = tokenizer.tokenize();
+ * ```
+ */
 class Tokenizer {
     private walker: StringWalker;
     private keywords: TokenMapper = new TokenMapper(Keyword);
     private symbols: TokenMapper = new TokenMapper(Symbol);
     private operators: TokenMapper = new TokenMapper(Operator);
 
+    /**
+     * Creates a new Tokenizer instance for the given input.
+     * 
+     * @param input - The FlowQuery input string to tokenize
+     */
     constructor(input: string) {
         this.walker = new StringWalker(input);
     }
 
+    /**
+     * Tokenizes the input string into an array of tokens.
+     * 
+     * @returns An array of Token objects representing the tokenized input
+     * @throws {Error} If an unrecognized token is encountered
+     */
     public tokenize(): Token[] {
         const tokens: Token[] = [];
         let last: Token | null = null;

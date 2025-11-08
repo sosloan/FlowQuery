@@ -38,11 +38,37 @@ import Identifier from "./expressions/identifier";
 import Limit from "./operations/limit";
 import RangeLookup from "./data_structures/range_lookup";
 import Null from "./components/null";
+
+/**
+ * Main parser for FlowQuery statements.
+ * 
+ * Parses FlowQuery declarative query language statements into an Abstract Syntax Tree (AST).
+ * Supports operations like WITH, UNWIND, RETURN, LOAD, WHERE, and LIMIT, along with
+ * expressions, functions, data structures, and logical constructs.
+ * 
+ * @example
+ * ```typescript
+ * const parser = new Parser();
+ * const ast = parser.parse("WITH x = 1 RETURN x");
+ * ```
+ */
 class Parser extends BaseParser {
     private variables: Map<string, ASTNode> = new Map();
     private context: Context = new Context();
     private _returns: number = 0;
 
+    /**
+     * Parses a FlowQuery statement into an Abstract Syntax Tree.
+     * 
+     * @param statement - The FlowQuery statement to parse
+     * @returns The root AST node containing the parsed structure
+     * @throws {Error} If the statement is malformed or contains syntax errors
+     * 
+     * @example
+     * ```typescript
+     * const ast = parser.parse("LOAD JSON FROM 'data.json' AS data RETURN data");
+     * ```
+     */
     public parse(statement: string): ASTNode {
         this.tokenize(statement);
         const root: ASTNode = new ASTNode();

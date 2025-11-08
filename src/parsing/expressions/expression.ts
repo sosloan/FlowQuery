@@ -2,6 +2,22 @@ import ASTNode from "../ast_node";
 import AggregateFunction from "../functions/aggregate_function";
 import Reference from "./reference";
 
+/**
+ * Represents an expression in the FlowQuery AST.
+ * 
+ * Expressions are built using the Shunting Yard algorithm to handle operator
+ * precedence and associativity. They can contain operands (numbers, strings, identifiers)
+ * and operators (arithmetic, logical, comparison).
+ * 
+ * @example
+ * ```typescript
+ * const expr = new Expression();
+ * expr.addNode(numberNode);
+ * expr.addNode(plusOperator);
+ * expr.addNode(anotherNumberNode);
+ * expr.finish();
+ * ```
+ */
 class Expression extends ASTNode {
     private operators: ASTNode[] = <ASTNode[]>[];
     private output: ASTNode[] = <ASTNode[]>[];
@@ -9,6 +25,13 @@ class Expression extends ASTNode {
     private _overridden: any | null = null;
     private _reducers: AggregateFunction[] | null = null;
 
+    /**
+     * Adds a node (operand or operator) to the expression.
+     * 
+     * Uses the Shunting Yard algorithm to maintain correct operator precedence.
+     * 
+     * @param node - The AST node to add (operand or operator)
+     */
     public addNode(node: ASTNode): void {
         /* Implements the Shunting Yard algorithm */
         if(node.isOperand()) {
@@ -31,6 +54,11 @@ class Expression extends ASTNode {
         }
     }
 
+    /**
+     * Finalizes the expression by converting it to a tree structure.
+     * 
+     * Should be called after all nodes have been added.
+     */
     public finish(): void {
         let last: ASTNode | undefined;
         while(last = this.operators.pop()) {

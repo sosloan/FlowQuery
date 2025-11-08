@@ -12,7 +12,25 @@ import Stringify from "./stringify";
 import Size from "./size";
 import Function from "./function";
 
+/**
+ * Factory for creating function instances by name.
+ * 
+ * Maps function names (case-insensitive) to their corresponding implementation classes.
+ * Supports built-in functions like sum, avg, collect, range, split, join, etc.
+ * 
+ * @example
+ * ```typescript
+ * const sumFunc = FunctionFactory.create("sum");
+ * const avgFunc = FunctionFactory.create("AVG");
+ * ```
+ */
 class FunctionFactory {
+    /**
+     * Creates a function instance by name.
+     * 
+     * @param name - The function name (case-insensitive)
+     * @returns A Function instance of the appropriate type
+     */
     public static create(name: string): Function {
         switch (name.toLowerCase()) {
             case "sum":

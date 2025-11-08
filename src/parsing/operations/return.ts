@@ -1,6 +1,17 @@
 import Projection from "./projection";
 import Where from "./where";
 
+/**
+ * Represents a RETURN operation that produces the final query results.
+ * 
+ * The RETURN operation evaluates expressions and collects them into result records.
+ * It can optionally have a WHERE clause to filter results.
+ * 
+ * @example
+ * ```typescript
+ * // RETURN x, y WHERE x > 0
+ * ```
+ */
 class Return extends Projection {
     protected _where: Where | null = null;
     protected _results: Record<string, any>[] = [];

@@ -1,7 +1,23 @@
 import Operation from "./operation";
 import Expression from "../expressions/expression";
 
+/**
+ * Represents a WHERE operation that filters data based on a condition.
+ * 
+ * The WHERE operation evaluates a boolean expression and only continues
+ * execution to the next operation if the condition is true.
+ * 
+ * @example
+ * ```typescript
+ * // RETURN x WHERE x > 0
+ * ```
+ */
 class Where extends Operation {
+    /**
+     * Creates a new WHERE operation with the given condition.
+     * 
+     * @param expression - The boolean expression to evaluate
+     */
     constructor(expression: Expression) {
         super();
         this.addChild(expression);

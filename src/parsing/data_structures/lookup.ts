@@ -1,5 +1,18 @@
 import ASTNode from "../ast_node";
 
+/**
+ * Represents a lookup operation (array/object indexing) in the AST.
+ * 
+ * Lookups access elements from arrays or properties from objects using an index or key.
+ * 
+ * @example
+ * ```typescript
+ * // For array[0] or obj.property or obj["key"]
+ * const lookup = new Lookup();
+ * lookup.variable = arrayOrObjNode;
+ * lookup.index = indexNode;
+ * ```
+ */
 class Lookup extends ASTNode {
     constructor() {
         super();

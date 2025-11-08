@@ -6,6 +6,20 @@ import TokenToNode from "../parsing/token_to_node";
 import ASTNode from "../parsing/ast_node";
 import StringUtils from "../utils/string_utils";
 
+/**
+ * Represents a single token in the FlowQuery language.
+ * 
+ * Tokens are the atomic units of lexical analysis, produced by the tokenizer
+ * and consumed by the parser. Each token has a type (keyword, operator, identifier, etc.)
+ * and an optional value.
+ * 
+ * @example
+ * ```typescript
+ * const withToken = Token.WITH;
+ * const identToken = Token.IDENTIFIER("myVar");
+ * const numToken = Token.NUMBER("42");
+ * ```
+ */
 class Token {
     private _position: number = -1;
     private _type: TokenType;
@@ -13,12 +27,24 @@ class Token {
     private _case_sensitive_value: string | null = null;
     private _can_be_identifier: boolean = false;
 
+    /**
+     * Creates a new Token instance.
+     * 
+     * @param type - The type of the token
+     * @param value - The optional value associated with the token
+     */
     constructor(type: TokenType, value: string | null = null) {
         this._type = type;
         this._value = value;
         this._can_be_identifier = StringUtils.can_be_identifier(value || '');
     }
 
+    /**
+     * Checks if this token equals another token.
+     * 
+     * @param other - The token to compare against
+     * @returns True if tokens are equal, false otherwise
+     */
     public equals(other: Token): boolean {
         if(this._type === TokenType.IDENTIFIER && other.type === TokenType.IDENTIFIER) {
             return true; // Identifier values are not compared

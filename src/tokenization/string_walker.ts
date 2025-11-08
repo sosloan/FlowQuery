@@ -1,9 +1,28 @@
 import StringUtils from "../utils/string_utils";
 
+/**
+ * Utility class for walking through a string character by character during tokenization.
+ * 
+ * Provides methods to check for specific character patterns, move through the string,
+ * and extract substrings. Used by the Tokenizer to process input text.
+ * 
+ * @example
+ * ```typescript
+ * const walker = new StringWalker("WITH x = 1");
+ * while (!walker.isAtEnd) {
+ *   // Process characters
+ * }
+ * ```
+ */
 class StringWalker {
     private _position: number;
     private readonly text: string;
 
+    /**
+     * Creates a new StringWalker for the given text.
+     * 
+     * @param text - The input text to walk through
+     */
     constructor(text: string) {
         this.text = text;
         this._position = 0;
