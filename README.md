@@ -17,7 +17,6 @@ FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/c
 - Test: ```npm test```
   - This will run all unit tests.
 - Build: ```npm run build``` (builds for both Node and web)
-  - Then test in browser by running in PowerShell: ```.\web\run_webserver.ps1```
 
 ## Examples
 See also .\queries and .\tests\compute\runner.test.ts for more examples.

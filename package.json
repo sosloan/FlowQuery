@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "test": "jest",
-    "build": "webpack && copyfiles dist/flowquery.min.js web/ && copyfiles dist/flowquery.min.js docs/ && copyfiles web/index.html docs/",
+    "build": "webpack && copyfiles -f dist/flowquery.min.js docs/ && copyfiles -f dist/flowquery.min.js flowquery-vscode/flowQueryEngine/",
     "main": "tsc & node dist/index.js",
     "docs": "typedoc --out docs/api src/index.ts"
   },

@@ -3,6 +3,7 @@
 test/**
 demo/**
 _vsix_extract/**
+node_modules/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
