@@ -35,6 +35,11 @@ jobs:
       - name: Build project
         run: npm run build
       
+      - name: Verify build artifacts
+        run: |
+          echo "Checking build artifacts..."
+          ls -la dist/flowquery.min.js || echo "dist/flowquery.min.js not found"
+      
       - name: Generate version tag
         id: version
         run: |
@@ -53,10 +58,7 @@ jobs:
             Automated release from main branch
             Version: ${{ steps.version.outputs.version }}
             Commit: ${{ github.sha }}
-          files: |
-            dist/flowquery.min.js
-            web/flowquery.min.js
-            docs/flowquery.min.js
+          files: dist/flowquery.min.js
           draft: false
           prerelease: false
         env:
