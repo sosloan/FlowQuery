@@ -9,7 +9,9 @@
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
     "strict": true,
     "types": ["node", "jest"],
-    "sourceMap": true
+    "sourceMap": true,
+    "declaration": true,                                 /* Generate .d.ts declaration files. */
+    "declarationMap": true                               /* Generate sourcemaps for .d.ts files. */
   },
   "include": ["src"]
 }

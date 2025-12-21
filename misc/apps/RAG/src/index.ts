@@ -1,4 +1,4 @@
-import { run } from 'flowquery';
+import { FlowQuery } from 'flowquery';
 
 /**
  * RAG (Retrieval Augmented Generation) loop using FlowQuery.
@@ -7,11 +7,11 @@ import { run } from 'flowquery';
  */
 async function main() {
     // Example: Run a simple FlowQuery query
-    const query = `return 1`;
+    const query = new FlowQuery('WITH 1 AS x RETURN x + 1');
 
     try {
-        const result = await run(query);
-        console.log('Result:', result);
+        await query.run();
+        console.log('Result:', query.results); // [ { expr0: 2 } ]
     } catch (error) {
         console.error('Error running query:', error);
     }

@@ -18,7 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "flowquery": "^1.0.2"
+    "flowquery": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
