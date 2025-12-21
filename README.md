@@ -18,6 +18,59 @@ FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/c
   - This will run all unit tests.
 - Build: ```npm run build``` (builds for both Node and web)
 
+## Installation & Usage
+
+### Node.js
+
+Install FlowQuery from npm:
+
+```bash
+npm install flowquery
+```
+
+Then use it in your code:
+
+```javascript
+const FlowQuery = require('flowquery').default;
+// Or with ES modules:
+// import FlowQuery from 'flowquery';
+
+async function main() {
+    const query = new FlowQuery('WITH 1 AS x RETURN x + 1');
+    await query.run();
+    console.log(query.results); // [ { expr0: 2 } ]
+}
+
+main();
+```
+
+### Browser
+
+Include the minified bundle in your HTML:
+
+```html
+<script src="https://microsoft.github.io/FlowQuery/flowquery.min.js"></script>
+<script>
+async function main() {
+    const query = new FlowQuery('WITH 1 AS x RETURN x + 1');
+    await query.run();
+    console.log(query.results); // [ { expr0: 2 } ]
+}
+
+main();
+</script>
+```
+
+Or import from the browser-specific entry point:
+
+```javascript
+import FlowQuery from 'flowquery/browser';
+
+const query = new FlowQuery('WITH "Hello" AS greeting RETURN greeting');
+await query.run();
+console.log(query.results);
+```
+
 ## Examples
 See also ./misc/queries and ./tests/compute/runner.test.ts for more examples.
 ```cypher

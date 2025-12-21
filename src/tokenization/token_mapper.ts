@@ -1,5 +1,5 @@
-import Token from "../../src/tokenization/token";
-import Trie from "../../src/tokenization/trie";
+import Token from "./token";
+import Trie from "./trie";
 
 /**
  * Maps string values to tokens using a Trie for efficient lookup.
