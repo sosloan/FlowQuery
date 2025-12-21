@@ -47,6 +47,12 @@ jobs:
           cp dist/flowquery.min.js flowquery-vscode/flowQueryEngine/
           ls -la flowquery-vscode/flowQueryEngine/
       
+      - name: Copy to docs folder
+        run: |
+          echo "Copying flowquery.min.js to docs folder for GitHub Pages..."
+          cp dist/flowquery.min.js docs/
+          ls -la docs/flowquery.min.js
+      
       - name: Bump version
         id: version
         run: |
@@ -61,7 +67,7 @@ jobs:
           echo "tag=v${NEW_VERSION}" >> $GITHUB_OUTPUT
           
           # Commit the version bump
-          git add package.json package-lock.json
+          git add package.json package-lock.json docs/flowquery.min.js
           git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]"
           git push
       
