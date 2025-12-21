@@ -1,0 +1,48 @@
+# RAG FlowQuery App
+
+A RAG (Retrieval Augmented Generation) loop based on [FlowQuery](https://www.npmjs.com/package/flowquery).
+
+## Prerequisites
+
+- Node.js 18+
+- npm
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode (with ts-node)
+npm run dev
+
+# Or build and run
+npm run build
+npm start
+```
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Run directly with ts-node (for development) |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm start` | Run the compiled JavaScript |
+| `npm run build:bundle` | Create a webpack bundle |
+| `npm run watch` | Watch mode for TypeScript compilation |
+
+## Project Structure
+
+```
+RAG/
+├── src/
+│   └── index.ts      # Main entry point
+├── dist/             # Compiled output (generated)
+├── package.json
+├── tsconfig.json
+└── webpack.config.js
+```
+
+## License
+
+MIT

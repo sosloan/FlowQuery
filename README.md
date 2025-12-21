@@ -19,7 +19,7 @@ FlowQuery is written in TypeScript (https://www.typescriptlang.org/) and built/c
 - Build: ```npm run build``` (builds for both Node and web)
 
 ## Examples
-See also .\queries and .\tests\compute\runner.test.ts for more examples.
+See also ./misc/queries and ./tests/compute/runner.test.ts for more examples.
 ```cypher
 /*
 Collect 10 random pieces of wisdom and create a letter histogram.
