@@ -11,6 +11,7 @@
 import { llm, llmStream, LlmOptions, LlmResponse } from '../plugins/loaders/Llm';
 import { FlowQueryExecutor, FlowQueryExecutionResult } from '../utils/FlowQueryExecutor';
 import { extractFlowQuery, FlowQueryExtraction } from '../utils/FlowQueryExtractor';
+import { isAdaptiveCard } from './AdaptiveCardRenderer';
 
 // Shared executor instance
 const flowQueryExecutor = new FlowQueryExecutor();
@@ -222,7 +223,7 @@ export async function processQuery(
 export async function* processQueryStream(
     userQuery: string,
     options: FlowQueryAgentOptions
-): AsyncGenerator<{ chunk: string; step: AgentStep['type']; done: boolean; steps?: AgentStep[] }, void, unknown> {
+): AsyncGenerator<{ chunk: string; step: AgentStep['type']; done: boolean; steps?: AgentStep[]; adaptiveCard?: Record<string, unknown> }, void, unknown> {
     const steps: AgentStep[] = [];
     const { systemPrompt, llmOptions = {}, conversationHistory = [], showIntermediateSteps = true } = options;
 
@@ -290,11 +291,15 @@ export async function* processQueryStream(
             return;
         }
 
+        // Check if the result contains an Adaptive Card
+        const adaptiveCard = extractAdaptiveCardFromResults(executionResult.results);
+
         // Step 4: Stream the interpretation
         const interpretationPrompt = buildInterpretationPrompt(
             userQuery,
             extraction.query!,
-            executionResult
+            executionResult,
+            !!adaptiveCard
         );
 
         let interpretationContent = '';
@@ -317,7 +322,7 @@ export async function* processQueryStream(
             timestamp: new Date(),
         });
 
-        yield { chunk: '', step: 'interpretation', done: true, steps };
+        yield { chunk: '', step: 'interpretation', done: true, steps, adaptiveCard };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         yield { 
@@ -330,17 +335,48 @@ export async function* processQueryStream(
 }
 
 /**
+ * Extract an Adaptive Card from the execution results.
+ * Checks if any result is an Adaptive Card (type: "AdaptiveCard") and returns it.
+ * Searches for Adaptive Cards at the top level or within any property of result objects.
+ */
+function extractAdaptiveCardFromResults(results: unknown[] | undefined): Record<string, unknown> | undefined {
+    if (!results || !Array.isArray(results)) {
+        return undefined;
+    }
+
+    for (const result of results) {
+        // Check if the result itself is an Adaptive Card
+        if (isAdaptiveCard(result)) {
+            return result;
+        }
+        
+        // Check if any property of the result object is an Adaptive Card
+        if (typeof result === 'object' && result !== null) {
+            const obj = result as Record<string, unknown>;
+            for (const value of Object.values(obj)) {
+                if (isAdaptiveCard(value)) {
+                    return value as Record<string, unknown>;
+                }
+            }
+        }
+    }
+
+    return undefined;
+}
+
+/**
  * Build the prompt for the interpretation phase.
  */
 function buildInterpretationPrompt(
     originalQuery: string,
     flowQuery: string,
-    executionResult: FlowQueryExecutionResult
+    executionResult: FlowQueryExecutionResult,
+    hasAdaptiveCard: boolean = false
 ): string {
     const resultsJson = JSON.stringify(executionResult.results, null, 2);
     const resultCount = executionResult.results?.length || 0;
     
-    return `The user asked: "${originalQuery}"
+    let prompt = `The user asked: "${originalQuery}"
 
 This was translated to the following FlowQuery:
 \`\`\`flowquery
@@ -353,7 +389,15 @@ The query executed successfully in ${executionResult.executionTime.toFixed(2)}ms
 ${resultsJson}
 \`\`\`
 
-Please interpret these results and provide a helpful response to the user's original question.`;
+`;
+
+    if (hasAdaptiveCard) {
+        prompt += `The result is an Adaptive Card that will be rendered automatically in the UI. Please provide a brief introduction or context for the data shown in the card, but do NOT recreate the table or list the data in your response since the card will display it visually.`;
+    } else {
+        prompt += `Please interpret these results and provide a helpful response to the user's original question.`;
+    }
+
+    return prompt;
 }
 
 /**

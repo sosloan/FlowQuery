@@ -12,9 +12,8 @@ import { FunctionDef } from 'flowquery/extensibility';
  * FetchJson loader class - fetches JSON data from a URL and yields items.
  */
 @FunctionDef({
-    isAsyncProvider: true,
     description: 'Fetches JSON data from a URL. If the response is an array, yields each item individually.',
-    category: 'data',
+    category: 'async',
     parameters: [
         {
             name: 'url',

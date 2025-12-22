@@ -81,9 +81,8 @@ export interface LlmResponse {
  * LLM Loader class - calls OpenAI-compatible APIs for chat completions.
  */
 @FunctionDef({
-    isAsyncProvider: true,
     description: 'Calls OpenAI-compatible chat completion APIs. Supports GPT models and any OpenAI-compatible endpoint.',
-    category: 'ai',
+    category: 'async',
     parameters: [
         {
             name: 'prompt',

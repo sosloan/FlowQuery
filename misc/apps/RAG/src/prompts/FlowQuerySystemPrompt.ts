@@ -33,6 +33,18 @@ FlowQuery is a declarative query language for data processing pipelines. It uses
    LOAD JSON FROM 'https://api.example.com/data' AS item
    LOAD JSON FROM myFunction(arg1, arg2) AS item
    \`\`\`
+   
+   **IMPORTANT**: Async data providers (functions used after LOAD JSON FROM) cannot be nested inside other function calls. If you need to pass data from one async provider to another, first load the data into a variable using collect(), then pass that variable:
+   \`\`\`
+   // WRONG - async providers cannot be nested:
+   // LOAD JSON FROM table(mockProducts(5), 'Products') AS card
+   
+   // CORRECT - collect data first, then pass to next provider:
+   LOAD JSON FROM mockProducts(5) AS p
+   WITH collect(p) AS products
+   LOAD JSON FROM table(products, 'Products') AS card
+   RETURN card
+   \`\`\`
 
 3. **LOAD JSON FROM ... HEADERS ... POST** - Make HTTP requests with headers and body
    \`\`\`

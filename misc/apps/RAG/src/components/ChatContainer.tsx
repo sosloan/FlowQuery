@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { Component, createRef, RefObject } from 'react';
 import { Spinner } from '@fluentui/react-components';
 import { ChatMessage, Message } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -16,51 +16,75 @@ interface ChatContainerProps {
     showIntermediateSteps?: boolean;
 }
 
-export const ChatContainer: React.FC<ChatContainerProps> = ({
-    systemPrompt = 'You are a helpful assistant. Be concise and informative in your responses.',
-    llmOptions = {},
-    useStreaming = true,
-    useFlowQueryAgent = true,
-    showIntermediateSteps = true
-}) => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+interface ChatContainerState {
+    messages: Message[];
+    isLoading: boolean;
+    error: string | null;
+}
 
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, []);
+export class ChatContainer extends Component<ChatContainerProps, ChatContainerState> {
+    static defaultProps: Partial<ChatContainerProps> = {
+        systemPrompt: 'You are a helpful assistant. Be concise and informative in your responses.',
+        llmOptions: {},
+        useStreaming: true,
+        useFlowQueryAgent: true,
+        showIntermediateSteps: true
+    };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, scrollToBottom]);
+    private messagesEndRef: RefObject<HTMLDivElement | null>;
 
-    const generateMessageId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    constructor(props: ChatContainerProps) {
+        super(props);
+        this.state = {
+            messages: [],
+            isLoading: false,
+            error: null
+        };
+        this.messagesEndRef = createRef<HTMLDivElement>();
+    }
 
-    const buildConversationHistory = useCallback((currentMessages: Message[]) => {
+    componentDidUpdate(_prevProps: ChatContainerProps, prevState: ChatContainerState): void {
+        if (prevState.messages !== this.state.messages) {
+            this.scrollToBottom();
+        }
+    }
+
+    private scrollToBottom = (): void => {
+        this.messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    private generateMessageId = (): string => {
+        return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    };
+
+    private buildConversationHistory = (currentMessages: Message[]): Array<{ role: 'user' | 'assistant'; content: string }> => {
         return currentMessages.map(msg => ({
             role: msg.role as 'user' | 'assistant',
             content: msg.content
         }));
-    }, []);
+    };
 
-    const handleSendMessage = useCallback(async (content: string) => {
+    private handleSendMessage = async (content: string): Promise<void> => {
+        const { systemPrompt, llmOptions, useStreaming, useFlowQueryAgent, showIntermediateSteps } = this.props;
+        const { messages } = this.state;
+
         const userMessage: Message = {
-            id: generateMessageId(),
+            id: this.generateMessageId(),
             role: 'user',
             content,
             timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, userMessage]);
-        setIsLoading(true);
-        setError(null);
+        this.setState(prev => ({
+            messages: [...prev.messages, userMessage],
+            isLoading: true,
+            error: null
+        }));
 
-        const assistantMessageId = generateMessageId();
+        const assistantMessageId = this.generateMessageId();
         
         try {
-            const conversationHistory = buildConversationHistory([...messages, userMessage]);
+            const conversationHistory = this.buildConversationHistory([...messages, userMessage]);
             
             if (useFlowQueryAgent) {
                 // Use the FlowQuery agent for processing
@@ -71,35 +95,43 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                     timestamp: new Date(),
                     isStreaming: true
                 };
-                setMessages(prev => [...prev, assistantMessage]);
+                this.setState(prev => ({
+                    messages: [...prev.messages, assistantMessage]
+                }));
 
                 let fullContent = '';
+                let adaptiveCardFromStream: Record<string, unknown> | undefined;
                 
-                for await (const { chunk, done } of processQueryStream(content, {
-                    systemPrompt,
+                for await (const { chunk, done, adaptiveCard } of processQueryStream(content, {
+                    systemPrompt: systemPrompt ?? 'You are a helpful assistant. Be concise and informative in your responses.',
                     llmOptions,
                     conversationHistory: conversationHistory.slice(0, -1),
                     showIntermediateSteps
                 })) {
                     if (chunk) {
                         fullContent += chunk;
-                        setMessages(prev => 
-                            prev.map(msg => 
+                        this.setState(prev => ({
+                            messages: prev.messages.map(msg => 
                                 msg.id === assistantMessageId 
                                     ? { ...msg, content: fullContent }
                                     : msg
                             )
-                        );
+                        }));
+                    }
+                    
+                    // Capture adaptive card if present
+                    if (adaptiveCard) {
+                        adaptiveCardFromStream = adaptiveCard;
                     }
                     
                     if (done) {
-                        setMessages(prev => 
-                            prev.map(msg => 
+                        this.setState(prev => ({
+                            messages: prev.messages.map(msg => 
                                 msg.id === assistantMessageId 
-                                    ? { ...msg, isStreaming: false }
+                                    ? { ...msg, isStreaming: false, adaptiveCard: adaptiveCardFromStream }
                                     : msg
                             )
-                        );
+                        }));
                     }
                 }
             } else {
@@ -120,30 +152,32 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                         timestamp: new Date(),
                         isStreaming: true
                     };
-                    setMessages(prev => [...prev, assistantMessage]);
+                    this.setState(prev => ({
+                        messages: [...prev.messages, assistantMessage]
+                    }));
 
                     let fullContent = '';
                     for await (const chunk of llmStream(content, options)) {
                         const deltaContent = chunk.choices?.[0]?.delta?.content || '';
                         if (deltaContent) {
                             fullContent += deltaContent;
-                            setMessages(prev => 
-                                prev.map(msg => 
+                            this.setState(prev => ({
+                                messages: prev.messages.map(msg => 
                                     msg.id === assistantMessageId 
                                         ? { ...msg, content: fullContent }
                                         : msg
                                 )
-                            );
+                            }));
                         }
                     }
 
-                    setMessages(prev => 
-                        prev.map(msg => 
+                    this.setState(prev => ({
+                        messages: prev.messages.map(msg => 
                             msg.id === assistantMessageId 
                                 ? { ...msg, isStreaming: false }
                                 : msg
                         )
-                    );
+                    }));
                 } else {
                     const response = await llm(content, options);
                     const assistantContent = response.choices[0]?.message?.content || 'No response received.';
@@ -154,86 +188,99 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                         content: assistantContent,
                         timestamp: new Date()
                     };
-                    setMessages(prev => [...prev, assistantMessage]);
+                    this.setState(prev => ({
+                        messages: [...prev.messages, assistantMessage]
+                    }));
                 }
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An error occurred while processing your request.';
-            setError(errorMessage);
             
             // Add or update error message as assistant response
             const errorContent = `⚠️ Error: ${errorMessage}`;
-            setMessages(prev => {
+            this.setState(prev => {
                 // Check if we already added a streaming message with this ID
-                const existingMessageIndex = prev.findIndex(msg => msg.id === assistantMessageId);
+                const existingMessageIndex = prev.messages.findIndex(msg => msg.id === assistantMessageId);
                 if (existingMessageIndex !== -1) {
                     // Update existing message
-                    return prev.map(msg => 
-                        msg.id === assistantMessageId 
-                            ? { ...msg, content: errorContent, isStreaming: false }
-                            : msg
-                    );
+                    return {
+                        messages: prev.messages.map(msg => 
+                            msg.id === assistantMessageId 
+                                ? { ...msg, content: errorContent, isStreaming: false }
+                                : msg
+                        ),
+                        error: errorMessage
+                    };
                 } else {
                     // Add new error message
-                    return [...prev, {
-                        id: assistantMessageId,
-                        role: 'assistant' as const,
-                        content: errorContent,
-                        timestamp: new Date()
-                    }];
+                    return {
+                        messages: [...prev.messages, {
+                            id: assistantMessageId,
+                            role: 'assistant' as const,
+                            content: errorContent,
+                            timestamp: new Date()
+                        }],
+                        error: errorMessage
+                    };
                 }
             });
         } finally {
-            setIsLoading(false);
+            this.setState({ isLoading: false });
         }
-    }, [messages, systemPrompt, llmOptions, useStreaming, useFlowQueryAgent, showIntermediateSteps, buildConversationHistory]);
+    };
 
-    const handleClearChat = useCallback(() => {
-        setMessages([]);
-        setError(null);
-    }, []);
+    private handleClearChat = (): void => {
+        this.setState({
+            messages: [],
+            error: null
+        });
+    };
 
-    return (
-        <div className="chat-container">
-            <div className="chat-messages">
-                {messages.length === 0 ? (
-                    <div className="chat-empty-state">
-                        <p>Start a conversation by typing a message below.</p>
-                    </div>
-                ) : (
-                    messages.map(message => (
-                        <ChatMessage key={message.id} message={message} />
-                    ))
-                )}
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                    <div className="chat-loading">
-                        <Spinner size="small" label="Thinking..." />
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-            
-            {error && !messages.some(m => m.content.includes(error)) && (
-                <div className="chat-error">
-                    {error}
+    render(): React.ReactNode {
+        const { messages, isLoading, error } = this.state;
+
+        return (
+            <div className="chat-container">
+                <div className="chat-messages">
+                    {messages.length === 0 ? (
+                        <div className="chat-empty-state">
+                            <p>Start a conversation by typing a message below.</p>
+                        </div>
+                    ) : (
+                        messages.map(message => (
+                            <ChatMessage key={message.id} message={message} />
+                        ))
+                    )}
+                    {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                        <div className="chat-loading">
+                            <Spinner size="small" label="Thinking..." />
+                        </div>
+                    )}
+                    <div ref={this.messagesEndRef} />
                 </div>
-            )}
-            
-            <ChatInput 
-                onSendMessage={handleSendMessage} 
-                isLoading={isLoading}
-                placeholder="Ask me anything..."
-            />
-            
-            {messages.length > 0 && (
-                <button 
-                    className="chat-clear-button"
-                    onClick={handleClearChat}
-                    disabled={isLoading}
-                >
-                    Clear conversation
-                </button>
-            )}
-        </div>
-    );
-};
+                
+                {error && !messages.some(m => m.content.includes(error)) && (
+                    <div className="chat-error">
+                        {error}
+                    </div>
+                )}
+                
+                <ChatInput 
+                    onSendMessage={this.handleSendMessage} 
+                    isLoading={isLoading}
+                    placeholder="Ask me anything..."
+                />
+                
+                {messages.length > 0 && (
+                    <button 
+                        className="chat-clear-button"
+                        onClick={this.handleClearChat}
+                        disabled={isLoading}
+                    >
+                        Clear conversation
+                    </button>
+                )}
+            </div>
+        );
+    }
+}

@@ -12,9 +12,8 @@ import { FunctionDef } from 'flowquery/extensibility';
  * MockUsers loader class - generates mock user data for testing.
  */
 @FunctionDef({
-    isAsyncProvider: true,
     description: 'Generates mock user data for testing purposes',
-    category: 'testing',
+    category: 'async',
     parameters: [
         {
             name: 'count',
@@ -81,9 +80,8 @@ export class MockUsersLoader {
  * MockProducts loader class - generates mock product data for testing.
  */
 @FunctionDef({
-    isAsyncProvider: true,
     description: 'Generates mock product data for testing purposes',
-    category: 'testing',
+    category: 'async',
     parameters: [
         {
             name: 'count',

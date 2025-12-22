@@ -14,9 +14,8 @@ const CAT_FACTS_API = 'https://catfact.ninja/facts';
  * CatFacts loader class - fetches random cat facts from the Cat Facts API.
  */
 @FunctionDef({
-    isAsyncProvider: true,
     description: 'Fetches random cat facts from the Cat Facts API (catfact.ninja)',
-    category: 'examples',
+    category: 'async',
     parameters: [
         {
             name: 'count',

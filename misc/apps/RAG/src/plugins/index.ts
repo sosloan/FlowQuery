@@ -3,22 +3,24 @@
  * 
  * To add a new plugin:
  * 1. Create a new file in the `loaders/` directory
- * 2. Add the @AsyncProviderDef decorator to your loader class
+ * 2. Add the @FunctionDef decorator with category: 'async' to your loader class
  * 3. Import the class in this file (the decorator auto-registers with FlowQuery)
  */
 
 import FlowQuery from 'flowquery';
 import { FunctionMetadata } from 'flowquery/extensibility';
 
-// Import loader classes - the @AsyncProviderDef decorator auto-registers them with FlowQuery
+// Import loader classes - the @FunctionDef decorator auto-registers them with FlowQuery
 import './loaders/FetchJson';
 import './loaders/CatFacts';
 import './loaders/MockData';
 import './loaders/Llm';
+import './loaders/Table';
+import './loaders/Form';
 
 /**
  * Initialize plugins.
- * Plugins are auto-registered via @AsyncProviderDef decorators when imported.
+ * Plugins are auto-registered via @FunctionDef decorators when imported.
  * This function just logs the registered plugins for debugging.
  */
 export function initializePlugins(): void {
@@ -60,7 +62,7 @@ export async function getAvailableLoaders(): Promise<FunctionMetadata[]> {
 }
 
 // Re-export types for external use
-export type { FunctionMetadata, FunctionDefOptions, ParameterSchema, OutputSchema, AsyncDataProvider } from 'flowquery/extensibility';
+export type { FunctionMetadata, FunctionDefOptions, ParameterSchema, OutputSchema } from 'flowquery/extensibility';
 export { FunctionDef } from 'flowquery/extensibility';
 
 // Re-export standalone loader functions for use outside of FlowQuery

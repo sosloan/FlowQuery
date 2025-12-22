@@ -1,4 +1,4 @@
-import React, { useState, useCallback, KeyboardEvent } from 'react';
+import React, { Component, KeyboardEvent } from 'react';
 import { Textarea, Button } from '@fluentui/react-components';
 import { SendFilled } from '@fluentui/react-icons';
 import './ChatInput.css';
@@ -9,54 +9,68 @@ interface ChatInputProps {
     placeholder?: string;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({
-    onSendMessage,
-    isLoading,
-    placeholder = 'Ask me anything...'
-}) => {
-    const [inputValue, setInputValue] = useState('');
+interface ChatInputState {
+    inputValue: string;
+}
 
-    const handleSend = useCallback(() => {
-        const trimmedValue = inputValue.trim();
-        if (trimmedValue && !isLoading) {
-            onSendMessage(trimmedValue);
-            setInputValue('');
+export class ChatInput extends Component<ChatInputProps, ChatInputState> {
+    static defaultProps = {
+        placeholder: 'Ask me anything...'
+    };
+
+    constructor(props: ChatInputProps) {
+        super(props);
+        this.state = {
+            inputValue: ''
+        };
+    }
+
+    handleSend = (): void => {
+        const trimmedValue = this.state.inputValue.trim();
+        if (trimmedValue && !this.props.isLoading) {
+            this.props.onSendMessage(trimmedValue);
+            this.setState({ inputValue: '' });
         }
-    }, [inputValue, isLoading, onSendMessage]);
+    };
 
-    const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
+    handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            handleSend();
+            this.handleSend();
         }
-    }, [handleSend]);
+    };
 
-    const handleChange = useCallback((
+    handleChange = (
         _e: React.ChangeEvent<HTMLTextAreaElement>,
         data: { value: string }
-    ) => {
-        setInputValue(data.value);
-    }, []);
+    ): void => {
+        this.setState({ inputValue: data.value });
+    };
 
-    return (
-        <div className="chat-input-container">
-            <Textarea
-                className="chat-input-textarea"
-                value={inputValue}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder}
-                resize="none"
-                disabled={isLoading}
-            />
-            <Button
-                className="chat-input-send-button"
-                appearance="primary"
-                icon={<SendFilled />}
-                onClick={handleSend}
-                disabled={isLoading || !inputValue.trim()}
-                title="Send message (Enter)"
-            />
-        </div>
-    );
-};
+    render() {
+        const { isLoading, placeholder } = this.props;
+        const { inputValue } = this.state;
+
+        return (
+            <div className="chat-input-container">
+                <Textarea
+                    className="chat-input-textarea"
+                    value={inputValue}
+                    onChange={this.handleChange}
+                    onKeyDown={this.handleKeyDown}
+                    placeholder={placeholder}
+                    resize="none"
+                    disabled={isLoading}
+                />
+                <Button
+                    className="chat-input-send-button"
+                    appearance="primary"
+                    icon={<SendFilled />}
+                    onClick={this.handleSend}
+                    disabled={isLoading || !inputValue.trim()}
+                    title="Send message (Enter)"
+                />
+            </div>
+        );
+    }
+}
