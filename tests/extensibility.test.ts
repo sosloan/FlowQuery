@@ -560,4 +560,42 @@ describe("Plugin Functions Integration with FlowQuery", () => {
         expect(runner.results[0]).toEqual({ id: 1, name: "Alice" });
         expect(runner.results[1]).toEqual({ id: 2, name: "Bob" });
     });
+
+    test("Custom function can be retrieved via functions() in a FlowQuery statement", async () => {
+        @FunctionDef({
+            description: "A unique test function for introspection",
+            category: "scalar",
+            parameters: [{ name: "x", description: "Input value", type: "number" }],
+            output: { description: "Output value", type: "number" }
+        })
+        class IntrospectTestFunc extends Function {
+            constructor() {
+                super("introspectTestFunc");
+                this._expectedParameterCount = 1;
+            }
+            
+            public value(): number {
+                return this.getChildren()[0].value() + 42;
+            }
+        }
+
+        // First verify the function is registered
+        const metadata = getFunctionMetadata("introspectTestFunc");
+        expect(metadata).toBeDefined();
+        expect(metadata?.name).toBe("introspecttestfunc");
+
+        // Use functions() with UNWIND to find the registered function
+        const runner = new Runner(`
+            WITH functions() AS funcs
+            UNWIND funcs AS f
+            WITH f WHERE f.name = 'introspecttestfunc'
+            RETURN f.name AS name, f.description AS description, f.category AS category
+        `);
+        await runner.run();
+        
+        expect(runner.results.length).toBe(1);
+        expect(runner.results[0].name).toBe("introspecttestfunc");
+        expect(runner.results[0].description).toBe("A unique test function for introspection");
+        expect(runner.results[0].category).toBe("scalar");
+    });
 });
