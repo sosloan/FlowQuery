@@ -351,7 +351,7 @@ export class FlowQueryAgent {
             // Emit intermediate step: show the query being executed
             if (showIntermediateSteps) {
                 yield { 
-                    chunk: `**Executing query:**\n\`\`\`flowquery\n${extraction.query}\n\`\`\`\n\n`, 
+                    chunk: `\`\`\`flowquery\n${extraction.query}\n\`\`\`\n\n`, 
                     step: 'query_generation', 
                     done: false 
                 };
@@ -382,6 +382,13 @@ export class FlowQueryAgent {
                 while (!currentResult.success && retryCount < maxRetries) {
                     retryCount++;
                     
+                    // Show the failure in the current message before marking it complete
+                    yield { 
+                        chunk: `\n⚠️ **Query execution failed:** ${currentError}\n`, 
+                        step: 'query_execution', 
+                        done: false 
+                    };
+                    
                     // Complete the previous message before starting a new one
                     yield { 
                         chunk: '', 
@@ -391,7 +398,7 @@ export class FlowQueryAgent {
                 
                     // Notify user of retry attempt - start a new message for the retry
                     yield { 
-                        chunk: `⚠️ The previous query failed: ${currentError}\n\n🔄 Attempting to fix (retry ${retryCount}/${maxRetries})...\n\n`, 
+                        chunk: `🔄 Attempting to fix (retry ${retryCount}/${maxRetries})...\n\n`, 
                         step: 'retry', 
                         done: false,
                         newMessage: true

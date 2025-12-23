@@ -56,6 +56,30 @@
     color: #666;
 }
 
+.flowquery-toggle-link {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    margin-left: 4px;
+}
+
+.flowquery-toggle-link:hover {
+    background-color: rgba(0, 120, 212, 0.1);
+    color: #0078d4;
+}
+
+.flowquery-toggle-link.active {
+    color: #0078d4;
+    background-color: rgba(0, 120, 212, 0.1);
+}
+
 .chat-message-text {
     white-space: pre-wrap;
     word-break: break-word;

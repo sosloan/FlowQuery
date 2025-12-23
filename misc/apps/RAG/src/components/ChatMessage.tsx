@@ -67,6 +67,7 @@ interface MessageContentProps {
     content: string;
     isStreaming?: boolean;
     adaptiveCard?: Record<string, unknown>;
+    showFlowQuery?: boolean;
 }
 
 interface MessageContentState {
@@ -107,7 +108,7 @@ class MessageContent extends Component<MessageContentProps, MessageContentState>
     }
 
     render() {
-        const { content, isStreaming } = this.props;
+        const { content, isStreaming, showFlowQuery } = this.props;
         const { runnerQuery } = this.state;
         
         const flowQueryBlocks = this.getFlowQueryBlocks();
@@ -118,6 +119,21 @@ class MessageContent extends Component<MessageContentProps, MessageContentState>
             return (
                 <>
                     {content}
+                    {allAdaptiveCards.map((card, index) => (
+                        <AdaptiveCardRenderer key={`card-${index}`} card={card} />
+                    ))}
+                    {isStreaming && <Spinner size="tiny" className="streaming-indicator" />}
+                </>
+            );
+        }
+
+        // If FlowQuery blocks are hidden, render content without code blocks
+        if (!showFlowQuery) {
+            // Remove FlowQuery code blocks from content for display
+            const contentWithoutFlowQuery = content.replace(/```flowquery\n[\s\S]*?```/gi, '').trim();
+            return (
+                <>
+                    {contentWithoutFlowQuery}
                     {allAdaptiveCards.map((card, index) => (
                         <AdaptiveCardRenderer key={`card-${index}`} card={card} />
                     ))}
@@ -204,10 +220,31 @@ class MessageContent extends Component<MessageContentProps, MessageContentState>
     }
 }
 
-export class ChatMessage extends Component<ChatMessageProps> {
+interface ChatMessageState {
+    showFlowQuery: boolean;
+}
+
+export class ChatMessage extends Component<ChatMessageProps, ChatMessageState> {
+    constructor(props: ChatMessageProps) {
+        super(props);
+        this.state = {
+            showFlowQuery: false
+        };
+    }
+
+    private hasFlowQueryBlocks(): boolean {
+        return /```flowquery\n[\s\S]*?```/gi.test(this.props.message.content);
+    }
+
+    private toggleFlowQuery = (): void => {
+        this.setState(prev => ({ showFlowQuery: !prev.showFlowQuery }));
+    };
+
     render() {
         const { message } = this.props;
+        const { showFlowQuery } = this.state;
         const isUser = message.role === 'user';
+        const hasFlowQuery = !isUser && this.hasFlowQueryBlocks();
 
         return (
             <div className={`chat-message ${isUser ? 'chat-message-user' : 'chat-message-assistant'}`}>
@@ -222,12 +259,24 @@ export class ChatMessage extends Component<ChatMessageProps> {
                         <span className="chat-message-time">
                             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
+                        {hasFlowQuery && (
+                            <Tooltip content={showFlowQuery ? 'Hide FlowQuery' : 'Show FlowQuery'} relationship="label">
+                                <button
+                                    className={`flowquery-toggle-link ${showFlowQuery ? 'active' : ''}`}
+                                    onClick={this.toggleFlowQuery}
+                                    aria-label={showFlowQuery ? 'Hide FlowQuery code' : 'Show FlowQuery code'}
+                                >
+                                    &lt;/&gt;
+                                </button>
+                            </Tooltip>
+                        )}
                     </div>
                     <div className="chat-message-text">
                         <MessageContent 
                             content={message.content} 
                             isStreaming={message.isStreaming}
                             adaptiveCard={message.adaptiveCard}
+                            showFlowQuery={showFlowQuery}
                         />
                     </div>
                 </div>

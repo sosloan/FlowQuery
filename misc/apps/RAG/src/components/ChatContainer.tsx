@@ -82,6 +82,9 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
         }));
 
         const assistantMessageId = this.generateMessageId();
+        // Track the current message ID - may change if newMessage flag is received during streaming
+        // Needs to be in outer scope so catch block can access it
+        let currentMessageId = assistantMessageId;
         
         try {
             const conversationHistory = this.buildConversationHistory([...messages, userMessage]);
@@ -101,7 +104,6 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
 
                 let fullContent = '';
                 let adaptiveCardFromStream: Record<string, unknown> | undefined;
-                let currentMessageId = assistantMessageId;
                 
                 for await (const { chunk, done, adaptiveCard, newMessage } of processQueryStream(content, {
                     systemPrompt: systemPrompt ?? 'You are a helpful assistant. Be concise and informative in your responses.',
@@ -111,16 +113,8 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
                 })) {
                     // If newMessage flag is set, finalize current message and start a new one
                     if (newMessage) {
-                        // Mark current message as done streaming
-                        this.setState(prev => ({
-                            messages: prev.messages.map(msg => 
-                                msg.id === currentMessageId 
-                                    ? { ...msg, isStreaming: false }
-                                    : msg
-                            )
-                        }));
-                        
                         // Create a new assistant message for the retry
+                        const previousMessageId = currentMessageId;
                         currentMessageId = this.generateMessageId();
                         fullContent = '';
                         const newAssistantMessage: Message = {
@@ -130,8 +124,13 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
                             timestamp: new Date(),
                             isStreaming: true
                         };
+                        // Mark previous message as done streaming AND add new message atomically
                         this.setState(prev => ({
-                            messages: [...prev.messages, newAssistantMessage]
+                            messages: [...prev.messages.map(msg => 
+                                msg.id === previousMessageId 
+                                    ? { ...msg, isStreaming: false }
+                                    : msg
+                            ), newAssistantMessage]
                         }));
                     }
                     
@@ -224,15 +223,16 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
             const errorMessage = err instanceof Error ? err.message : 'An error occurred while processing your request.';
             
             // Add or update error message as assistant response
+            // Use currentMessageId which may differ from assistantMessageId if a retry created a new message
             const errorContent = `⚠️ Error: ${errorMessage}`;
             this.setState(prev => {
                 // Check if we already added a streaming message with this ID
-                const existingMessageIndex = prev.messages.findIndex(msg => msg.id === assistantMessageId);
+                const existingMessageIndex = prev.messages.findIndex(msg => msg.id === currentMessageId);
                 if (existingMessageIndex !== -1) {
                     // Update existing message
                     return {
                         messages: prev.messages.map(msg => 
-                            msg.id === assistantMessageId 
+                            msg.id === currentMessageId 
                                 ? { ...msg, content: errorContent, isStreaming: false }
                                 : msg
                         ),
@@ -242,7 +242,7 @@ export class ChatContainer extends Component<ChatContainerProps, ChatContainerSt
                     // Add new error message
                     return {
                         messages: [...prev.messages, {
-                            id: assistantMessageId,
+                            id: currentMessageId,
                             role: 'assistant' as const,
                             content: errorContent,
                             timestamp: new Date()
