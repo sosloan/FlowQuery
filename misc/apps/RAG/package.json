@@ -20,7 +20,7 @@
     "@fluentui/react-icons": "^2.0.316",
     "adaptivecards": "^3.0.5",
     "adaptivecards-templating": "^2.3.1",
-    "flowquery": "^1.0.11",
+    "flowquery": "^1.0.12",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
@@ -29,7 +29,6 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "css-loader": "^7.1.2",
-    "dotenv": "^17.2.3",
     "html-webpack-plugin": "^5.6.5",
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.1",
