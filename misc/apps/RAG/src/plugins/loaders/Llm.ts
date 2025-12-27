@@ -16,7 +16,7 @@
  *   console.log(response.choices[0].message.content);
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 // Default configuration - can be overridden via options
 const DEFAULT_CONFIG = {
@@ -132,10 +132,11 @@ export interface LlmResponse {
     ],
     notes: 'Requires API key configured in Settings or passed as apiKey option. Works with any OpenAI-compatible API by setting the apiUrl option.'
 })
-export class Llm {
+export class Llm extends AsyncFunction {
     private readonly defaultOptions: Partial<LlmOptions>;
 
     constructor(defaultOptions: Partial<LlmOptions> = {}) {
+        super();
         this.defaultOptions = defaultOptions;
     }
 
@@ -350,7 +351,7 @@ export class Llm {
     /**
      * Async generator provider for FlowQuery LOAD operations.
      */
-    async *fetch(prompt: string, options?: LlmOptions): AsyncGenerator<any, void, unknown> {
+    async *generate(prompt: string, options?: LlmOptions): AsyncGenerator<any, void, unknown> {
         if (options?.stream) {
             yield* this.stream(prompt, options);
         } else {

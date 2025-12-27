@@ -6,7 +6,7 @@
  *   RETURN forecast
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 const GEOCODING_API = 'https://geocoding-api.open-meteo.com/v1/search';
 const WEATHER_API = 'https://api.met.no/weatherapi/locationforecast/2.0/compact';
@@ -48,11 +48,12 @@ const WEATHER_API = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
         "LOAD JSON FROM weather('London') AS forecast RETURN forecast[0]"
     ]
 })
-export class Weather {
+export class Weather extends AsyncFunction {
     private readonly geocodingApiUrl: string;
     private readonly weatherApiUrl: string;
 
     constructor(geocodingApiUrl: string = GEOCODING_API, weatherApiUrl: string = WEATHER_API) {
+        super();
         this.geocodingApiUrl = geocodingApiUrl;
         this.weatherApiUrl = weatherApiUrl;
     }
@@ -62,7 +63,7 @@ export class Weather {
      * 
      * @param location - The name of the location to get weather for
      */
-    async *fetch(location: string): AsyncGenerator<any, void, unknown> {
+    async *generate(location: string): AsyncGenerator<any, void, unknown> {
         // Step 1: Geocode the location name to get lat/lon
         const geocodeUrl = `${this.geocodingApiUrl}?name=${encodeURIComponent(location)}`;
         const geocodeResponse = await fetch(geocodeUrl);

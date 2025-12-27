@@ -14,7 +14,7 @@
  * Note: Async providers cannot be nested as function arguments.
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 /**
  * Interface for Adaptive Card structure
@@ -90,7 +90,7 @@ interface TableRow {
         "LOAD JSON FROM mockProducts(10) AS p WITH collect(p) AS products LOAD JSON FROM table(products, 'Products', ['name', 'price', 'category']) AS card RETURN card"
     ]
 })
-export class Table {
+export class Table extends AsyncFunction {
     /**
      * Transforms data into an Adaptive Card with table layout.
      * 
@@ -99,7 +99,7 @@ export class Table {
      * @param columns - Optional column names to include
      * @param maxRows - Maximum rows to include
      */
-    async *fetch(
+    async *generate(
         data: any[] | AsyncIterable<any>,
         title: string = 'Data Table',
         columns?: string[],

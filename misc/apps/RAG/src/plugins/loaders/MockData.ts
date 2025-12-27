@@ -6,7 +6,7 @@
  *   RETURN user.name, user.email
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 /**
  * MockUsers class - generates mock user data for testing.
@@ -39,7 +39,7 @@ import { FunctionDef } from 'flowquery/extensibility';
         "LOAD JSON FROM mockUsers(20) AS user RETURN user WHERE user.active = true"
     ]
 })
-export class MockUsers {
+export class MockUsers extends AsyncFunction {
     private readonly firstNames: string[];
     private readonly lastNames: string[];
     private readonly domains: string[];
@@ -49,6 +49,7 @@ export class MockUsers {
         lastNames: string[] = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'],
         domains: string[] = ['example.com', 'test.org', 'demo.net']
     ) {
+        super();
         this.firstNames = firstNames;
         this.lastNames = lastNames;
         this.domains = domains;
@@ -59,7 +60,7 @@ export class MockUsers {
      * 
      * @param count - Number of mock users to generate
      */
-    async *fetch(count: number = 5): AsyncGenerator<any, void, unknown> {
+    async *generate(count: number = 5): AsyncGenerator<any, void, unknown> {
         for (let i = 0; i < count; i++) {
             const firstName = this.firstNames[Math.floor(Math.random() * this.firstNames.length)];
             const lastName = this.lastNames[Math.floor(Math.random() * this.lastNames.length)];
@@ -108,7 +109,7 @@ export class MockUsers {
         "LOAD JSON FROM mockProducts(50) AS p RETURN p WHERE p.category = 'Electronics'"
     ]
 })
-export class MockProducts {
+export class MockProducts extends AsyncFunction {
     private readonly categories: string[];
     private readonly adjectives: string[];
     private readonly nouns: string[];
@@ -118,6 +119,7 @@ export class MockProducts {
         adjectives: string[] = ['Premium', 'Basic', 'Pro', 'Ultra', 'Classic'],
         nouns: string[] = ['Widget', 'Gadget', 'Item', 'Product', 'Thing']
     ) {
+        super();
         this.categories = categories;
         this.adjectives = adjectives;
         this.nouns = nouns;
@@ -128,7 +130,7 @@ export class MockProducts {
      * 
      * @param count - Number of mock products to generate
      */
-    async *fetch(count: number = 5): AsyncGenerator<any, void, unknown> {
+    async *generate(count: number = 5): AsyncGenerator<any, void, unknown> {
         for (let i = 0; i < count; i++) {
             const adj = this.adjectives[Math.floor(Math.random() * this.adjectives.length)];
             const noun = this.nouns[Math.floor(Math.random() * this.nouns.length)];
