@@ -275,7 +275,7 @@ UNWIND [2, 3, 4] AS num RETURN product(num) AS result
 Async providers allow you to create custom data sources that can be used with `LOAD JSON FROM`:
 
 ```typescript
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 @FunctionDef({
     description: "Provides example data for testing",
@@ -283,8 +283,8 @@ import { FunctionDef } from 'flowquery/extensibility';
     parameters: [],
     output: { description: "Example data object", type: "object" }
 })
-class GetExampleData {
-    async *fetch(): AsyncGenerator<any> {
+class GetExampleData extends AsyncFunction {
+    async *generate(): AsyncGenerator<any> {
         yield { id: 1, name: "Alice" };
         yield { id: 2, name: "Bob" };
     }

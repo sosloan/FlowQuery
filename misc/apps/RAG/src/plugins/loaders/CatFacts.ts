@@ -6,7 +6,7 @@
  *   RETURN fact.text
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 const CAT_FACTS_API = 'https://catfact.ninja/facts';
 
@@ -38,10 +38,11 @@ const CAT_FACTS_API = 'https://catfact.ninja/facts';
         "LOAD JSON FROM catFacts(5) AS fact RETURN fact.text, fact.length AS length"
     ]
 })
-export class CatFacts {
+export class CatFacts extends AsyncFunction {
     private readonly apiUrl: string;
 
     constructor(apiUrl: string = CAT_FACTS_API) {
+        super();
         this.apiUrl = apiUrl;
     }
 
@@ -50,7 +51,7 @@ export class CatFacts {
      * 
      * @param count - Number of cat facts to fetch (default: 1)
      */
-    async *fetch(count: number = 1): AsyncGenerator<any, void, unknown> {
+    async *generate(count: number = 1): AsyncGenerator<any, void, unknown> {
         const url = `${this.apiUrl}?limit=${count}`;
         const response = await fetch(url);
         

@@ -17,12 +17,12 @@ test('Test Parser', () => {
 
 test('Test Parser with function', () => {
     const parser = new Parser();
-    const ast = parser.parse('RETURN f()');
+    const ast = parser.parse('RETURN rand()');
     expect(ast.print()).toBe(
         'ASTNode\n' +
         '- Return\n' +
         '-- Expression\n' +
-        '--- Function (f)'
+        '--- Function (rand)'
     );
 });
 

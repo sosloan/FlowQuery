@@ -8,9 +8,9 @@ class PredicateFunction extends ASTNode {
     private _name: string;
     protected _valueHolder: ValueHolder = new ValueHolder();
 
-    constructor(name: string) {
+    constructor(name?: string) {
         super();
-        this._name = name;
+        this._name = name || this.constructor.name;
     }
 
     public get name(): string {

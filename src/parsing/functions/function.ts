@@ -22,9 +22,9 @@ class Function extends ASTNode {
      * 
      * @param name - The function name
      */
-    constructor(name: string) {
+    constructor(name?: string) {
         super();
-        this._name = name;
+        this._name = name || this.constructor.name;
     }
 
     /**

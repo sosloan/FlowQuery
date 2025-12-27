@@ -22,9 +22,10 @@ import {
     getRegisteredFunctionMetadata,
     getFunctionMetadata,
     getRegisteredFunctionFactory,
-    getRegisteredAsyncProvider,
     AsyncDataProvider
 } from "./function_metadata";
+import AsyncFunction from "./async_function";
+import { get } from "node:http";
 
 // Re-export AsyncDataProvider for backwards compatibility
 export { AsyncDataProvider };
@@ -50,7 +51,7 @@ class FunctionFactory {
      * @returns The async data provider, or undefined if not found
      */
     public static getAsyncProvider(name: string): AsyncDataProvider | undefined {
-        return getRegisteredAsyncProvider(name.toLowerCase());
+        return getRegisteredFunctionFactory(name.toLowerCase());
     }
 
     /**
@@ -60,7 +61,7 @@ class FunctionFactory {
      * @returns True if the function is an async data provider
      */
     public static isAsyncProvider(name: string): boolean {
-        return getRegisteredAsyncProvider(name.toLowerCase()) !== undefined;
+        return getRegisteredFunctionFactory(name.toLowerCase(), "async") !== undefined;
     }
 
     /**
@@ -123,7 +124,7 @@ class FunctionFactory {
      * @returns A Function instance of the appropriate type
      */
     public static create(name: string): Function {
-        const lowerName = name.toLowerCase();
+        const lowerName: string = name.toLowerCase();
         
         // Check decorator-registered functions (built-ins use @FunctionDef)
         const decoratorFactory = getRegisteredFunctionFactory(lowerName);
@@ -131,8 +132,7 @@ class FunctionFactory {
             return decoratorFactory();
         }
 
-        // Unknown function - return generic Function instance
-        return new Function(name);
+        throw new Error(`Unknown function: ${name}`);
     }
 
     /**
@@ -143,7 +143,7 @@ class FunctionFactory {
      * @returns A PredicateFunction instance of the appropriate type
      */
     public static createPredicate(name: string): PredicateFunction {
-        const lowerName = name.toLowerCase();
+        const lowerName: string = name.toLowerCase();
         
         // Check decorator-registered predicate functions
         const decoratorFactory = getRegisteredFunctionFactory(lowerName, 'predicate');
@@ -151,9 +151,18 @@ class FunctionFactory {
             return decoratorFactory();
         }
 
-        // Unknown predicate function - return generic PredicateFunction instance
-        return new PredicateFunction(name);
+        throw new Error(`Unknown predicate function: ${name}`);
     }
+
+    public static createAsync(name: string): AsyncFunction {
+        const lowerName: string = name.toLowerCase();
+        const decoratorFactory = getRegisteredFunctionFactory(lowerName, 'async');
+        if (decoratorFactory) {
+            return decoratorFactory() as AsyncFunction;
+        }
+        throw new Error(`Unknown async function: ${name}`);
+    }
+
 }
 
 export default FunctionFactory;

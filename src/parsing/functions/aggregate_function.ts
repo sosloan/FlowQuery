@@ -21,7 +21,7 @@ class AggregateFunction extends Function {
      * 
      * @param name - The function name
      */
-    constructor(name: string) {
+    constructor(name?: string) {
         super(name);
     }
     

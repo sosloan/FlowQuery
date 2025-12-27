@@ -12,8 +12,8 @@ import {
     FunctionCategory
 } from "../src/extensibility";
 import {
-    getRegisteredAsyncProvider,
-    getFunctionMetadata
+    getFunctionMetadata,
+    getRegisteredFunctionFactory
 } from "../src/parsing/functions/function_metadata";
 
 describe("Extensibility API Exports", () => {
@@ -216,8 +216,8 @@ describe("FunctionDef Decorator", () => {
             ],
             output: { description: "Data object", type: "object" }
         })
-        class Simple {
-            async *fetch(count: number = 1): AsyncGenerator<any> {
+        class Simple extends AsyncFunction {
+            public async *generate(count: number = 1): AsyncGenerator<any> {
                 for (let i = 0; i < count; i++) {
                     yield { id: i, data: `item${i}` };
                 }
@@ -225,9 +225,9 @@ describe("FunctionDef Decorator", () => {
         }
         
         // Verify the decorated class still works correctly
-        const loader = new Simple();
+        const loader = new Simple("simple");
         const results: any[] = [];
-        for await (const item of loader.fetch(2)) {
+        for await (const item of loader.generate(2)) {
             results.push(item);
         }
         expect(results.length).toBe(2);
@@ -235,14 +235,14 @@ describe("FunctionDef Decorator", () => {
         expect(results[1]).toEqual({ id: 1, data: "item1" });
         
         // Verify the async provider was registered
-        const provider = getRegisteredAsyncProvider("simple");
+        const provider = getRegisteredFunctionFactory("simple", "async");
         expect(provider).toBeDefined();
         expect(typeof provider).toBe("function");
         
         // Verify the metadata was registered
-        const metadata = getFunctionMetadata("simple");
+        const metadata = getFunctionMetadata("simple", "async");
         expect(metadata).toBeDefined();
-        expect(metadata?.name).toBe("Simple");
+        expect(metadata?.name).toBe("simple");
         expect(metadata?.category).toBe("async");
         expect(metadata?.description).toBe("Test async provider for extensibility");
     });
@@ -540,17 +540,17 @@ describe("Plugin Functions Integration with FlowQuery", () => {
             description: "Provides example data for testing",
             category: "async",
             parameters: [],
-            output: { description: "Example data object", type: "object" }
+            output: { description: "Example data o.bject", type: "object" }
         })
-        class GetExampleData {
-            async *fetch(): AsyncGenerator<any> {
+        class GetExampleData extends AsyncFunction {
+            public async *generate(): AsyncGenerator<any> {
                 yield { id: 1, name: "Alice" };
                 yield { id: 2, name: "Bob" };
             }
         }
 
         // Verify registration worked
-        expect(getRegisteredAsyncProvider("getExampleData")).toBeDefined();
+        expect(getRegisteredFunctionFactory("getExampleData", "async")).toBeDefined();
 
         // Use the async provider in a FlowQuery statement
         const runner = new Runner("LOAD JSON FROM getExampleData() AS data RETURN data.id AS id, data.name AS name");
@@ -568,22 +568,22 @@ describe("Plugin Functions Integration with FlowQuery", () => {
             parameters: [],
             output: { description: "Test data", type: "object" }
         })
-        class MixedCaseFunc {
-            async *fetch(): AsyncGenerator<any> {
+        class MixedCaseFunc extends AsyncFunction {
+            public async *generate(): AsyncGenerator<any> {
                 yield { value: 42 };
             }
         }
 
         // Verify registration works with different casings
-        expect(getRegisteredAsyncProvider("MixedCaseFunc")).toBeDefined();
-        expect(getRegisteredAsyncProvider("mixedcasefunc")).toBeDefined();
-        expect(getRegisteredAsyncProvider("MIXEDCASEFUNC")).toBeDefined();
-        expect(getRegisteredAsyncProvider("mIxEdCaSeFuNc")).toBeDefined();
+        expect(getRegisteredFunctionFactory("MixedCaseFunc", "async")).toBeDefined();
+        expect(getRegisteredFunctionFactory("mixedcasefunc", "async")).toBeDefined();
+        expect(getRegisteredFunctionFactory("MIXEDCASEFUNC", "async")).toBeDefined();
+        expect(getRegisteredFunctionFactory("mIxEdCaSeFuNc", "async")).toBeDefined();
 
         // Verify metadata lookup is case-insensitive
-        expect(getFunctionMetadata("MixedCaseFunc")).toBeDefined();
-        expect(getFunctionMetadata("mixedcasefunc")).toBeDefined();
-        expect(getFunctionMetadata("MIXEDCASEFUNC")).toBeDefined();
+        expect(getFunctionMetadata("MixedCaseFunc", "async")).toBeDefined();
+        expect(getFunctionMetadata("mixedcasefunc", "async")).toBeDefined();
+        expect(getFunctionMetadata("MIXEDCASEFUNC", "async")).toBeDefined();
 
         // Test using different casings in FlowQuery statements
         const runner1 = new Runner("LOAD JSON FROM mixedcasefunc() AS d RETURN d.value AS v");

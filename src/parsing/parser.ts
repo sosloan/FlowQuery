@@ -597,7 +597,7 @@ class Parser extends BaseParser {
         if(!this.peek()?.isLeftParenthesis()) {
             return null;
         }
-        const asyncFunc = new AsyncFunction(this.token.value);
+        const asyncFunc = FunctionFactory.createAsync(this.token.value);
         this.setNextToken(); // skip function name
         this.setNextToken(); // skip left parenthesis
         this.skipWhitespaceAndComments();
@@ -609,6 +609,7 @@ class Parser extends BaseParser {
         this.setNextToken();
         return asyncFunc;
     }
+    
     private parsePredicateFunction(): PredicateFunction | null {
         if(!this.ahead([Token.IDENTIFIER(""), Token.LEFT_PARENTHESIS, Token.IDENTIFIER(""), Token.IN])) {
             return null;

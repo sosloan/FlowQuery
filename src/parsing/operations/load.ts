@@ -87,7 +87,7 @@ class Load extends Operation {
    */
   private async loadFromFunction(): Promise<void> {
     const asyncFunc = this.asyncFunction!;
-    for await (const item of asyncFunc.execute()) {
+    for await (const item of asyncFunc.generate()) {
       this._value = item;
       await this.next?.run();
     }

@@ -78,19 +78,9 @@ export type AsyncDataProvider = (...args: any[]) => AsyncGenerator<any, void, un
 class FunctionRegistry {
     private static metadata: Map<string, FunctionMetadata> = new Map<string, FunctionMetadata>();
     private static factories: Map<string, () => any> = new Map<string, () => any>();
-    private static asyncProviders: Map<string, AsyncDataProvider> = new Map<string, AsyncDataProvider>();
-
-    /** Registers an async data provider class. */
-    static registerAsync<T extends new (...args: any[]) => any>(constructor: T, options: FunctionDefOptions): void {
-        const displayName: string = constructor.name;
-        const registryKey: string = displayName.toLowerCase();
-
-        this.metadata.set(registryKey, { name: displayName, ...options });
-        this.asyncProviders.set(registryKey, (...args: any[]) => new constructor().fetch(...args));
-    }
 
     /** Registers a regular function class. */
-    static registerFunction<T extends new (...args: any[]) => any>(constructor: T, options: FunctionDefOptions): void {
+    static register<T extends new (...args: any[]) => any>(constructor: T, options: FunctionDefOptions): void {
         const instance: any = new constructor();
         const displayName: string = (instance.name?.toLowerCase() || constructor.name.toLowerCase());
         const registryKey: string = options.category ? `${displayName}:${options.category}` : displayName;
@@ -121,10 +111,6 @@ class FunctionRegistry {
         if (category) return this.factories.get(`${lowerName}:${category}`);
         return this.factories.get(lowerName);
     }
-
-    static getAsyncProvider(name: string): AsyncDataProvider | undefined {
-        return this.asyncProviders.get(name.toLowerCase());
-    }
 }
 
 /**
@@ -137,45 +123,74 @@ export type FunctionDefOptions = Omit<FunctionMetadata, 'name'>;
  * The function name is derived from the class's constructor call to super() for regular functions,
  * or from the class name for async providers.
  * 
- * For async providers (category: "async"), the class must have a `fetch` method that returns
- * an AsyncGenerator. The function name is derived from the class name, converted to camelCase
- * (first letter lowercased).
+ * For async providers (category: "async"), the class must have a `generate` method that returns
+ * an AsyncGenerator. This allows the function to be used as a data source in LOAD operations.
  * 
  * @param options - Function metadata (excluding name)
  * @returns Class decorator
  * 
  * @example
  * ```typescript
- * // Regular function
+ * // Scalar function example
  * @FunctionDef({
- *     description: "Calculates the sum of numeric values",
- *     category: "aggregate",
- *     parameters: [{ name: "value", description: "Numeric value to sum", type: "number" }],
- *     output: { description: "Sum of all values", type: "number", example: 150 },
- *     examples: ["WITH [1, 2, 3] AS nums UNWIND nums AS n RETURN sum(n)"]
+ *   description: "Adds two numbers",
+ *   category: "scalar",
+ *   parameters: [
+ *     { name: "a", description: "First number", type: "number" },
+ *     { name: "b", description: "Second number", type: "number" }
+ *   ],
+ *   output: { description: "Sum of a and b", type: "number" },
+ *   examples: ["ADD(2, 3) // returns 5"]
  * })
- * class Sum extends AggregateFunction { ... }
- * 
- * // Async data provider
- * @FunctionDef({
- *     description: "Fetches random cat facts from the Cat Facts API",
- *     category: "async",
- *     parameters: [{ name: "count", description: "Number of facts", type: "number", required: false, default: 1 }],
- *     output: { description: "Cat fact object", type: "object" },
- *     examples: ["LOAD JSON FROM catFacts(5) AS fact RETURN fact.text"]
- * })
- * class CatFacts {
- *     async *fetch(count: number = 1): AsyncGenerator<any> { ... }
+ * class AddFunction extends Function {
+ *   constructor() {
+ *     super("add");
+ *   }
+ *   public execute(a: number, b: number): number {
+ *    return a + b;
+ *  }
  * }
- * ```
+ * // Aggregate function example
+ * @FunctionDef({
+ *   description: "Calculates the average of a list of numbers",
+ *  category: "aggregate",
+ *  parameters: [
+ *    { name: "values", description: "Array of numbers", type: "array", items: { type: "number" } }
+ *  ],
+ *  output: { description: "Average value", type: "number" },
+ *  examples: ["AVERAGE([1, 2, 3, 4, 5]) // returns 3"]
+ * })
+ * class AverageFunction extends AggregateFunction {
+ *   constructor() {
+ *    super("average");
+ *  }
+ *  public execute(values: number[]): number {
+ *   const sum = values.reduce((acc, val) => acc + val, 0);
+ *   return sum / values.length;
+ * }
+ * }
+ * // Async data provider example
+ * @FunctionDef({
+ *  description: "Fetches data from an external API",
+ * category: "async",
+ * parameters: [
+ *   { name: "endpoint", description: "API endpoint URL", type: "string" }
+ * ],
+ * output: { description: "Data object", type: "object" },
+ * examples: ["MyAsyncDataProvider('https://api.example.com/data')"]
+ * })
+ * class MyAsyncDataProvider extends AsyncFunction {
+ *   public async *generate(endpoint: string): AsyncGenerator<any> {
+ *    const response = await fetch(endpoint);
+ *   const data = await response.json();
+ *   for (const item of data) {
+ *    yield item;
+ *  }
+ * }
  */
 export function FunctionDef(options: FunctionDefOptions) {
     return function <T extends new (...args: any[]) => any>(constructor: T): T {
-        if (options.category === 'async') {
-            FunctionRegistry.registerAsync(constructor, options);
-        } else {
-            FunctionRegistry.registerFunction(constructor, options);
-        }
+        FunctionRegistry.register(constructor, options);
         return constructor;
     };
 }
@@ -199,11 +214,4 @@ export function getRegisteredFunctionFactory(name: string, category?: string): (
  */
 export function getFunctionMetadata(name: string, category?: string): FunctionMetadata | undefined {
     return FunctionRegistry.getMetadata(name, category);
-}
-
-/**
- * Gets a registered async data provider by name.
- */
-export function getRegisteredAsyncProvider(name: string): AsyncDataProvider | undefined {
-    return FunctionRegistry.getAsyncProvider(name);
 }
