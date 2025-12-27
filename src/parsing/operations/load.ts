@@ -84,10 +84,12 @@ class Load extends Operation {
 
   /**
    * Loads data from an async function source.
+   * Arguments from the query (e.g., myFunc(arg1, arg2)) are passed to generate().
    */
   private async loadFromFunction(): Promise<void> {
     const asyncFunc = this.asyncFunction!;
-    for await (const item of asyncFunc.generate()) {
+    const args = asyncFunc.getArguments();
+    for await (const item of asyncFunc.generate(...args)) {
       this._value = item;
       await this.next?.run();
     }

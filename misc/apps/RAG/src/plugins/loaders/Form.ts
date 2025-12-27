@@ -22,7 +22,7 @@
  *   RETURN form
  */
 
-import { FunctionDef } from 'flowquery/extensibility';
+import { FunctionDef, AsyncFunction } from 'flowquery/extensibility';
 
 /**
  * Interface for Adaptive Card structure
@@ -159,7 +159,7 @@ interface FormConfig {
         "LOAD JSON FROM form('Survey', [{ id: 'rating', type: 'dropdown', label: 'Rating', choices: ['1', '2', '3', '4', '5'] }, { id: 'subscribe', type: 'toggle', label: 'Subscribe', toggleTitle: 'Yes, send me updates' }], { submitButton: { title: 'Submit Survey', style: 'positive' } }) AS form RETURN form"
     ]
 })
-export class Form {
+export class Form extends AsyncFunction {
     /**
      * Creates an Adaptive Card form with the specified fields and configuration.
      * 
@@ -167,7 +167,7 @@ export class Form {
      * @param fields - Array of field configurations
      * @param config - Optional form configuration
      */
-    async *fetch(
+    async *generate(
         title: string,
         fields: FormFieldConfig[],
         config?: FormConfig
