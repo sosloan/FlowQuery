@@ -1,143 +1,146 @@
-import Operation from "./operation";
 import CSV from "../components/csv";
-import {default as _JSON} from "../components/json";
-import Text from "../components/text";
-import Function from "../functions/function";
-import AsyncFunction from "../functions/async_function";
-import AssociativeArray from "../data_structures/associative_array";
-import Reference from "../expressions/reference";
-import Expression from "../expressions/expression";
-import Headers from "../components/headers";
-import Post from "../components/post";
-import Lookup from "../data_structures/lookup";
 import From from "../components/from";
+import Headers from "../components/headers";
+import { default as _JSON } from "../components/json";
+import Post from "../components/post";
+import Text from "../components/text";
+import AssociativeArray from "../data_structures/associative_array";
+import Lookup from "../data_structures/lookup";
+import Expression from "../expressions/expression";
+import Reference from "../expressions/reference";
+import AsyncFunction from "../functions/async_function";
+import Function from "../functions/function";
+import Operation from "./operation";
 
 class Load extends Operation {
-  private _value: any = null;
-  constructor() {
-    super()
-  }
-  public get type(): _JSON | CSV | Text {
-    return this.children[0] as _JSON | CSV | Text;
-  }
+    private _value: any = null;
 
-  /**
-   * Gets the From component which contains either a URL expression or an AsyncFunction.
-   */
-  public get fromComponent(): From {
-    return this.children[1] as From;
-  }
+    constructor() {
+        super();
+    }
+    public get type(): _JSON | CSV | Text {
+        return this.children[0] as _JSON | CSV | Text;
+    }
 
-  /**
-   * Checks if the data source is an async function.
-   */
-  public get isAsyncFunction(): boolean {
-    return this.fromComponent.firstChild() instanceof AsyncFunction;
-  }
+    /**
+     * Gets the From component which contains either a URL expression or an AsyncFunction.
+     */
+    public get fromComponent(): From {
+        return this.children[1] as From;
+    }
 
-  /**
-   * Gets the async function if the source is a function, otherwise null.
-   */
-  public get asyncFunction(): AsyncFunction | null {
-    const child = this.fromComponent.firstChild();
-    return child instanceof AsyncFunction ? child : null;
-  }
+    /**
+     * Checks if the data source is an async function.
+     */
+    public get isAsyncFunction(): boolean {
+        return this.fromComponent.firstChild() instanceof AsyncFunction;
+    }
 
-  public get from(): string {
-    return this.children[1].value() as string;
-  }
-  public get headers(): { [key: string]: string } {
-    if(this.childCount() > 2 && this.children[2] instanceof Headers) {
-      return this.children[2].value() as { [key: string]: string } || {};
+    /**
+     * Gets the async function if the source is a function, otherwise null.
+     */
+    public get asyncFunction(): AsyncFunction | null {
+        const child = this.fromComponent.firstChild();
+        return child instanceof AsyncFunction ? child : null;
     }
-    return {};
-  }
-  public get payload(): Function | Reference | Expression | AssociativeArray | Lookup | null {
-    let post: Post | null = null;
-    if(this.childCount() > 2 && this.children[2] instanceof Post) {
-      post = this.children[2] as Post;
-    } else if(this.childCount() > 3 && this.children[3] instanceof Post) {
-      post = this.children[3] as Post;
-    }
-    return post !== null ? post.firstChild() as Function | Reference | Expression | AssociativeArray | Lookup : null;
-  }
-  private method(): "GET" | "POST" {
-    if(this.payload === null) {
-      return "GET";
-    } else {
-      return "POST";
-    }
-  }
-  private options(): object {
-    const headers = this.headers as { [key: string]: string };
-    const payload = this.payload;
-    const data = payload?.value();
-    if(data !== null && typeof data === "object" && !(headers.hasOwnProperty("Content-Type"))) {
-      headers["Content-Type"] = "application/json";
-    }
-    return {
-      "method": this.method(),
-      "headers": headers,
-      ...(payload !== null ? {"body": JSON.stringify(payload.value())} : {})
-    };
-  }
 
-  /**
-   * Loads data from an async function source.
-   * Arguments from the query (e.g., myFunc(arg1, arg2)) are passed to generate().
-   */
-  private async loadFromFunction(): Promise<void> {
-    const asyncFunc = this.asyncFunction!;
-    const args = asyncFunc.getArguments();
-    for await (const item of asyncFunc.generate(...args)) {
-      this._value = item;
-      await this.next?.run();
+    public get from(): string {
+        return this.children[1].value() as string;
     }
-  }
+    public get headers(): { [key: string]: string } {
+        if (this.childCount() > 2 && this.children[2] instanceof Headers) {
+            return (this.children[2].value() as { [key: string]: string }) || {};
+        }
+        return {};
+    }
+    public get payload(): Function | Reference | Expression | AssociativeArray | Lookup | null {
+        let post: Post | null = null;
+        if (this.childCount() > 2 && this.children[2] instanceof Post) {
+            post = this.children[2] as Post;
+        } else if (this.childCount() > 3 && this.children[3] instanceof Post) {
+            post = this.children[3] as Post;
+        }
+        return post !== null
+            ? (post.firstChild() as Function | Reference | Expression | AssociativeArray | Lookup)
+            : null;
+    }
+    private method(): "GET" | "POST" {
+        if (this.payload === null) {
+            return "GET";
+        } else {
+            return "POST";
+        }
+    }
+    private options(): object {
+        const headers = this.headers as { [key: string]: string };
+        const payload = this.payload;
+        const data = payload?.value();
+        if (data !== null && typeof data === "object" && !headers.hasOwnProperty("Content-Type")) {
+            headers["Content-Type"] = "application/json";
+        }
+        return {
+            method: this.method(),
+            headers: headers,
+            ...(payload !== null ? { body: JSON.stringify(payload.value()) } : {}),
+        };
+    }
 
-  /**
-   * Loads data from a URL source (original behavior).
-   */
-  private async loadFromUrl(): Promise<void> {
-    const result = await fetch(this.from, this.options());
-    let data: any = null;
-    if(this.type instanceof _JSON) {
-      data = await result.json();
-    } else if(this.type instanceof Text) {
-      data = await result.text();
+    /**
+     * Loads data from an async function source.
+     * Arguments from the query (e.g., myFunc(arg1, arg2)) are passed to generate().
+     */
+    private async loadFromFunction(): Promise<void> {
+        const asyncFunc = this.asyncFunction!;
+        const args = asyncFunc.getArguments();
+        for await (const item of asyncFunc.generate(...args)) {
+            this._value = item;
+            await this.next?.run();
+        }
     }
-    if(Array.isArray(data)) {
-      for(const item of data) {
-        this._value = item;
-        await this.next?.run();
-      }
-    } else if(typeof data === "object" && data !== null) {
-      this._value = data;
-      await this.next?.run();
-    } else if(typeof data === "string") {
-      this._value = data;
-      await this.next?.run();
-    }
-  }
 
-  public async load(): Promise<any> {
-    if (this.isAsyncFunction) {
-      await this.loadFromFunction();
-    } else {
-      await this.loadFromUrl();
+    /**
+     * Loads data from a URL source (original behavior).
+     */
+    private async loadFromUrl(): Promise<void> {
+        const result = await fetch(this.from, this.options());
+        let data: any = null;
+        if (this.type instanceof _JSON) {
+            data = await result.json();
+        } else if (this.type instanceof Text) {
+            data = await result.text();
+        }
+        if (Array.isArray(data)) {
+            for (const item of data) {
+                this._value = item;
+                await this.next?.run();
+            }
+        } else if (typeof data === "object" && data !== null) {
+            this._value = data;
+            await this.next?.run();
+        } else if (typeof data === "string") {
+            this._value = data;
+            await this.next?.run();
+        }
     }
-  }
-  public async run(): Promise<void> {
-    try {
-      await this.load();
-    } catch(e) {
-      const source = this.isAsyncFunction ? this.asyncFunction?.name : this.from;
-      throw new Error(`Failed to load data from ${source}. Error: ${e}`);
+
+    public async load(): Promise<any> {
+        if (this.isAsyncFunction) {
+            await this.loadFromFunction();
+        } else {
+            await this.loadFromUrl();
+        }
     }
-  }
-  public value(): any {
-    return this._value;
-  }
+    public async run(): Promise<void> {
+        try {
+            await this.load();
+        } catch (e) {
+            const source = this.isAsyncFunction ? this.asyncFunction?.name : this.from;
+            throw new Error(`Failed to load data from ${source}. Error: ${e}`);
+        }
+    }
+    public value(): any {
+        return this._value;
+    }
 }
 
 export default Load;
