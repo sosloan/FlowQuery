@@ -1,18 +1,18 @@
-import TokenType from "./token_type";
-import Keyword from "./keyword";
-import Symbol from "./symbol";
-import Operator from "./operator";
-import TokenToNode from "../parsing/token_to_node";
 import ASTNode from "../parsing/ast_node";
+import TokenToNode from "../parsing/token_to_node";
 import StringUtils from "../utils/string_utils";
+import Keyword from "./keyword";
+import Operator from "./operator";
+import Symbol from "./symbol";
+import TokenType from "./token_type";
 
 /**
  * Represents a single token in the FlowQuery language.
- * 
+ *
  * Tokens are the atomic units of lexical analysis, produced by the tokenizer
  * and consumed by the parser. Each token has a type (keyword, operator, identifier, etc.)
  * and an optional value.
- * 
+ *
  * @example
  * ```typescript
  * const withToken = Token.WITH;
@@ -29,24 +29,24 @@ class Token {
 
     /**
      * Creates a new Token instance.
-     * 
+     *
      * @param type - The type of the token
      * @param value - The optional value associated with the token
      */
     constructor(type: TokenType, value: string | null = null) {
         this._type = type;
         this._value = value;
-        this._can_be_identifier = StringUtils.can_be_identifier(value || '');
+        this._can_be_identifier = StringUtils.can_be_identifier(value || "");
     }
 
     /**
      * Checks if this token equals another token.
-     * 
+     *
      * @param other - The token to compare against
      * @returns True if tokens are equal, false otherwise
      */
     public equals(other: Token): boolean {
-        if(this._type === TokenType.IDENTIFIER && other.type === TokenType.IDENTIFIER) {
+        if (this._type === TokenType.IDENTIFIER && other.type === TokenType.IDENTIFIER) {
             return true; // Identifier values are not compared
         }
         return this._type === other.type && this._value === other.value;
@@ -399,6 +399,22 @@ class Token {
         return this._type === TokenType.KEYWORD && this._value === Keyword.LOAD;
     }
 
+    public static get CALL(): Token {
+        return new Token(TokenType.KEYWORD, Keyword.CALL);
+    }
+
+    public isCall(): boolean {
+        return this._type === TokenType.KEYWORD && this._value === Keyword.CALL;
+    }
+
+    public static get YIELD(): Token {
+        return new Token(TokenType.KEYWORD, Keyword.YIELD);
+    }
+
+    public isYield(): boolean {
+        return this._type === TokenType.KEYWORD && this._value === Keyword.YIELD;
+    }
+
     public static get JSON(): Token {
         return new Token(TokenType.KEYWORD, Keyword.JSON);
     }
@@ -478,7 +494,7 @@ class Token {
     public isWhere(): boolean {
         return this._type === TokenType.KEYWORD && this._value === Keyword.WHERE;
     }
-    
+
     public static get MERGE(): Token {
         return new Token(TokenType.KEYWORD, Keyword.MERGE);
     }
@@ -598,7 +614,6 @@ class Token {
     public isLimit(): boolean {
         return this._type === TokenType.KEYWORD && this._value === Keyword.LIMIT;
     }
-
 
     // End of file token
 

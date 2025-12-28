@@ -1,5 +1,5 @@
-import Operation from "./operation";
 import Expression from "../expressions/expression";
+import Operation from "./operation";
 
 class Projection extends Operation {
     constructor(expressions: Expression[]) {
@@ -7,7 +7,7 @@ class Projection extends Operation {
         this.children = expressions;
     }
     protected *expressions(): Generator<[Expression, string]> {
-        for(let i = 0; i < this.children.length; i++) {
+        for (let i = 0; i < this.children.length; i++) {
             const expression: Expression = this.children[i] as Expression;
             const alias = expression.alias || `expr${i}`;
             yield [expression, alias];
