@@ -71,9 +71,9 @@ This document outlines critical caveats, limitations, and warnings for the HFT O
 
 ### 9. **Order Storage**
 - Maintains full order history in `orders: [OrderID: Order] = [:]`
-- **Caveat**: Never removes cancelled/filled orders from initial storage
-- **Bug**: Memory leak - `orders` dictionary grows indefinitely
-- **Fix Required**: Properly clean up orders dictionary in `cancelOrder()` and matching functions
+- **Note**: Orders are properly removed on cancellation and when fully filled
+- **Caveat**: For partially filled orders, the dictionary is updated with new Order instances
+- **Impact**: Partial fills create new objects which may impact garbage collection in high-frequency scenarios
 
 ### 10. **Hidden Quantity Handling**
 - Iceberg orders use `hiddenQuantity` field
